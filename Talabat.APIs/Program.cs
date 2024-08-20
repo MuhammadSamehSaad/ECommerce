@@ -1,4 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using Talabat.Core.Entites;
+using Talabat.Core.Repositories.Contract;
+using Talabat.Repository;
 using Talabat.Repository.Data;
 
 namespace Talabat.APIs
@@ -21,6 +24,15 @@ namespace Talabat.APIs
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
             });
 
+            ///Old Way Probelm Code Duplication
+            ///builder.Services.AddScoped<IGenericRepository<Product>, GenericRepository<Product>>();
+            ///builder.Services.AddScoped<IGenericRepository<ProductBrand>, GenericRepository<ProductBrand>>();
+            ///builder.Services.AddScoped<IGenericRepository<ProductCategory>, GenericRepository<ProductCategory>>();
+
+            //New Way to make add services gerneric
+            builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+
+
             var app = builder.Build();
 
             using var scope = app.Services.CreateScope();
@@ -36,7 +48,7 @@ namespace Talabat.APIs
             try
             {
                 await _dbContext.Database.MigrateAsync();//Update Database
-                
+
                 await StoreContextSeed.SeedAsync(_dbContext);//Data Seeding
 
             }
