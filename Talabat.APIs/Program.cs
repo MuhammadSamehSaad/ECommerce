@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Talabat.APIs.Helpers;
 using Talabat.Core.Entites;
 using Talabat.Core.Repositories.Contract;
 using Talabat.Repository;
@@ -32,6 +33,7 @@ namespace Talabat.APIs
             //New Way to make add services gerneric
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
+            builder.Services.AddAutoMapper(typeof(MappingProfiles));
 
             var app = builder.Build();
 
@@ -69,6 +71,8 @@ namespace Talabat.APIs
             }
 
             app.UseHttpsRedirection();
+
+            app.UseStaticFiles();
 
             app.UseAuthorization();
 
