@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Talabat.APIs.Errors;
 using Talabat.APIs.Helpers;
-using Talabat.Core.Entites;
+using Talabat.APIs.Middlewares;
 using Talabat.Core.Repositories.Contract;
 using Talabat.Repository;
 using Talabat.Repository.Data;
@@ -35,6 +37,32 @@ namespace Talabat.APIs
 
             builder.Services.AddAutoMapper(typeof(MappingProfiles));
 
+            #region Validation Error
+
+            builder.Services.Configure<ApiBehaviorOptions>(Options =>
+            {
+                Options.InvalidModelStateResponseFactory = (actionContext) =>
+                {
+                    //ModelState => Dic [KeyValuePair]
+                    //Key => Name Of Parameters
+                    //Value => Error
+
+                    var errors = actionContext.ModelState.Where(P => P.Value.Errors.Count() > 0)
+                                                         .SelectMany(P => P.Value.Errors)
+                                                         .Select(E => E.ErrorMessage)
+                                                         .ToList();
+
+                    var ValidationErrorResponse = new ApiValidationErrorResponse()
+                    {
+                        Error = errors
+                    };
+
+                    return new BadRequestObjectResult(ValidationErrorResponse);
+                };
+
+            });
+            #endregion
+
             var app = builder.Build();
 
             using var scope = app.Services.CreateScope();
@@ -64,12 +92,15 @@ namespace Talabat.APIs
 
 
             // Configure the HTTP request pipeline.
+                app.UseMiddleware<ExceptionMiddleware>();
             if (app.Environment.IsDevelopment())
             {
+                //app.UseDeveloperExceptionPage();we have it by defult
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
 
+            app.UseStatusCodePagesWithRedirects("/errors/{0}");
             app.UseHttpsRedirection();
 
             app.UseStaticFiles();

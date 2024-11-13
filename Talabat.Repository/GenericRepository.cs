@@ -31,15 +31,17 @@ namespace Talabat.Repository
             return await _dbContext.Set<T>().AsNoTracking().ToListAsync();
         }
 
+        public async Task<T?> GetAsync(int id)
+        {
+            return await _dbContext.Set<T>().FindAsync(id);
+        }
+
+
         public async Task<IEnumerable<T>> GetAllWithSpecAsync(ISpecifications<T> spec)
         {
             return await ApplySpecifications(spec).AsNoTracking().ToListAsync();
         }
 
-        public async Task<T?> GetAsync(int id)
-        {
-            return await _dbContext.Set<T>().FindAsync(id);
-        }
 
         public async Task<T?> GetWithSpecAsync(ISpecifications<T> spec)
         {

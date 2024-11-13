@@ -15,13 +15,13 @@ namespace Talabat.Repository.Data
         public async static Task SeedAsync(StoreContext _dbContext)
         {
             //DataSeeding For ProductBrands
-            if (_dbContext.ProductBrands.Count() == 0)
+            if (_dbContext.ProductBrands.Count() == 0)//or !dbContext.ProductBrands.Any()
             {
                 var brandsData = File.ReadAllText("../Talabat.Repository/Data/DataSeed/brands.json");
 
                 var brands = JsonSerializer.Deserialize<List<ProductBrand>>(brandsData);
 
-                if (brands?.Count > 0)
+                if (brands?.Count > 0)//or (Brands is not null && Brands.Count > 0)
                 {
                     foreach (var brand in brands)
                     {
