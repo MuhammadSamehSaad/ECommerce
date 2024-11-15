@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 using Talabat.APIs.Dtos;
 using Talabat.APIs.Errors;
 using Talabat.Core.Entites;
@@ -35,6 +36,8 @@ namespace Talabat.APIs.Controllers
 
         //api/Products/1
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(ProductToReturnfDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ProductToReturnfDto>> GetProduct(int id)
         {
             var spec = new ProductWithBrandAndCategorySpecifications(id);

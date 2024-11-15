@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Talabat.APIs.Errors;
+using Talabat.APIs.Extensions;
 using Talabat.APIs.Helpers;
 using Talabat.APIs.Middlewares;
 using Talabat.Core.Repositories.Contract;
@@ -13,6 +14,8 @@ namespace Talabat.APIs
     {
         public async static Task Main(string[] args)
         {
+            #region Services
+
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
@@ -27,44 +30,12 @@ namespace Talabat.APIs
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
             });
 
-            ///Old Way Probelm Code Duplication
-            ///builder.Services.AddScoped<IGenericRepository<Product>, GenericRepository<Product>>();
-            ///builder.Services.AddScoped<IGenericRepository<ProductBrand>, GenericRepository<ProductBrand>>();
-            ///builder.Services.AddScoped<IGenericRepository<ProductCategory>, GenericRepository<ProductCategory>>();
-
-            //New Way to make add services gerneric
-            builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-
-            builder.Services.AddAutoMapper(typeof(MappingProfiles));
-
-            #region Validation Error
-
-            builder.Services.Configure<ApiBehaviorOptions>(Options =>
-            {
-                Options.InvalidModelStateResponseFactory = (actionContext) =>
-                {
-                    //ModelState => Dic [KeyValuePair]
-                    //Key => Name Of Parameters
-                    //Value => Error
-
-                    var errors = actionContext.ModelState.Where(P => P.Value.Errors.Count() > 0)
-                                                         .SelectMany(P => P.Value.Errors)
-                                                         .Select(E => E.ErrorMessage)
-                                                         .ToList();
-
-                    var ValidationErrorResponse = new ApiValidationErrorResponse()
-                    {
-                        Error = errors
-                    };
-
-                    return new BadRequestObjectResult(ValidationErrorResponse);
-                };
-
-            });
-            #endregion
+            //Go To Extensions Folder Then Go To ApplicationServicesExtension Class To See The Added Services .
+            builder.Services.AddApplicationServices();
 
             var app = builder.Build();
 
+            #region Update-Database && Data Seeding
             using var scope = app.Services.CreateScope();
 
             var services = scope.ServiceProvider;
@@ -89,10 +60,14 @@ namespace Talabat.APIs
 
                 //Console.WriteLine(ex);
             }
+            #endregion
 
+            #endregion
+
+            #region Middlewares
 
             // Configure the HTTP request pipeline.
-                app.UseMiddleware<ExceptionMiddleware>();
+            app.UseMiddleware<ExceptionMiddleware>();
             if (app.Environment.IsDevelopment())
             {
                 //app.UseDeveloperExceptionPage();we have it by defult
@@ -100,7 +75,7 @@ namespace Talabat.APIs
                 app.UseSwaggerUI();
             }
 
-            app.UseStatusCodePagesWithRedirects("/errors/{0}");
+            app.UseStatusCodePagesWithReExecute("/errors/{0}");
             app.UseHttpsRedirection();
 
             app.UseStaticFiles();
@@ -111,6 +86,7 @@ namespace Talabat.APIs
             app.MapControllers();
 
             app.Run();
+            #endregion
         }
     }
 }
