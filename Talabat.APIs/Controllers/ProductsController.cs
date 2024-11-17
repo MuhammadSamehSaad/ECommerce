@@ -1,12 +1,9 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Net;
 using Talabat.APIs.Dtos;
 using Talabat.APIs.Errors;
 using Talabat.Core.Entites;
 using Talabat.Core.Repositories.Contract;
-using Talabat.Core.Specifications;
 using Talabat.Core.Specifications.Product_Specs;
 
 namespace Talabat.APIs.Controllers
@@ -14,24 +11,31 @@ namespace Talabat.APIs.Controllers
     public class ProductsController : BaseApiController
     {
         private readonly IGenericRepository<Product> _productRepo;
+        private readonly IGenericRepository<ProductCategory> _categoryRepo;
+        private readonly IGenericRepository<ProductBrand> _brandRepo;
         private readonly IMapper _mapper;
 
-        public ProductsController(IGenericRepository<Product> productRepo, IMapper mapper)
+        public ProductsController(IGenericRepository<Product> productRepo,
+            IGenericRepository<ProductCategory> categoryRepo,
+            IGenericRepository<ProductBrand> brandRepo,
+            IMapper mapper)
         {
             _productRepo = productRepo;
+            _categoryRepo = categoryRepo;
+            _brandRepo = brandRepo;
             _mapper = mapper;
         }
 
         //api/Products
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductToReturnfDto>>> GetProducts()
+        public async Task<ActionResult<IReadOnlyList<ProductToReturnfDto>>> GetProducts(string? sort)
         {
-            var spec = new ProductWithBrandAndCategorySpecifications();
+            var spec = new ProductWithBrandAndCategorySpecifications(sort);
 
 
             var products = await _productRepo.GetAllWithSpecAsync(spec);
 
-            return Ok(_mapper.Map<IEnumerable<Product>, IEnumerable<ProductToReturnfDto>>(products));
+            return Ok(_mapper.Map<IReadOnlyList<Product>, IReadOnlyList<ProductToReturnfDto>>(products));
         }
 
         //api/Products/1
@@ -50,6 +54,28 @@ namespace Talabat.APIs.Controllers
 
             return Ok(_mapper.Map<Product, ProductToReturnfDto>(product));//200
         }
+
+        //Get All Categories
+        //BaseUrl/api/Products/Categories
+        [HttpGet("Categories")]
+        public async Task<ActionResult<IReadOnlyList<ProductCategory>>> GetCategories()
+        {
+
+            var categories = await _categoryRepo.GetAllAsync();
+
+            return Ok(categories);
+        }
+
+        //Get All Brands
+        //BaseUrl/api/Products/Brands
+        [HttpGet("Brands")]
+        public async Task<ActionResult<IReadOnlyList<ProductBrand>>> GetBrands()
+        {
+            var brands = await _brandRepo.GetAllAsync();
+            return Ok(brands);
+        }
+
+
 
 
     }
