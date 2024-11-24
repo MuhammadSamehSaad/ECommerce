@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq.Expressions;
 using Talabat.Core.Entities;
 
 namespace Talabat.Core.Specifications
@@ -12,8 +7,11 @@ namespace Talabat.Core.Specifications
     {
         public Expression<Func<T, bool>>? Criteria { get; set; } = null;
         public List<Expression<Func<T, object>>> Includes { get; set; } = new List<Expression<Func<T, object>>>();
-        public Expression<Func<T, object>> OrderBy { get; set; }
-        public Expression<Func<T, object>> OrderByDesc { get; set; }
+        public Expression<Func<T, object>> OrderBy { get; set; } = null;
+        public Expression<Func<T, object>> OrderByDesc { get; set; } = null;
+        public int Take { get; set; }
+        public int Skip { get; set; }
+        public bool IsPaginationEnabled { get; set; }
 
         public BaseSpecifications()
         {
@@ -32,6 +30,15 @@ namespace Talabat.Core.Specifications
         public void AddOrderByDesc(Expression<Func<T, object>> orderExpression)
         {
             OrderByDesc = orderExpression;
+        }
+
+        public void ApplayPagination(int skip, int take)
+        {
+            IsPaginationEnabled = true;
+
+            Take = take;
+            Skip = skip;
+
         }
     }
 }

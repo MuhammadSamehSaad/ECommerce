@@ -10,12 +10,16 @@ namespace Talabat.Core.Specifications.Product_Specs
     public class ProductWithBrandAndCategorySpecifications : BaseSpecifications<Product>
     {
         //This Constructor Will Be Used For Createing an Object , That Will Be Used For Get All Products It's Critera = Null
-        public ProductWithBrandAndCategorySpecifications(string sort) : base()
+        public ProductWithBrandAndCategorySpecifications(ProductSpecParams Parms) : base
+            (P =>
+                (!Parms.brandId.HasValue || P.BrandId == Parms.brandId) &&
+                (!Parms.categoryId.HasValue || P.CategoryId == Parms.categoryId)
+            )
         {
             addIncludes();
-            if (!string.IsNullOrEmpty(sort))
+            if (!string.IsNullOrEmpty(Parms.sort))
             {
-                switch (sort)
+                switch (Parms.sort)
                 {
                     case "PriceAcs":
                         AddOrderBy(P => P.Price); break;
@@ -26,7 +30,20 @@ namespace Talabat.Core.Specifications.Product_Specs
                         break;
                 }
             }
+
+            ///Proucts = 100          18
+            ///PageSize = 10          10
+            ///PageIndex = 4          10
+            ///
+            ///Skip => 4 * 10 = 40
+            ///Take => 10
+            
+            ApplayPagination(Parms.PageSize * (Parms.PageIndex - 1), Parms.PageSize);
         }
+
+
+
+
         public ProductWithBrandAndCategorySpecifications(int id) : base(P => P.Id == id)
         {
             addIncludes();

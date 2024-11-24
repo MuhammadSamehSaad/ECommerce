@@ -1,9 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Talabat.Core.Entities;
 using Talabat.Core.Specifications;
 
@@ -28,6 +23,12 @@ namespace Talabat.Repository
             {
                 query = query.OrderByDescending(spec.OrderByDesc);
             }
+
+            if (spec.IsPaginationEnabled)
+            {
+                query = query.Skip(spec.Skip).Take(spec.Take);
+            }
+
 
             //Include expresson:
             //1. P => P.Brand
